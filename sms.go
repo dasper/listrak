@@ -13,21 +13,33 @@ import (
 //SMS base url
 const SMS = "/sms"
 
+//SmsRequest required to call SMS api
 type SmsRequest struct {
 	baseRequest
 	basePath string
 }
 
-//NewSMSClient required to call SMS api
+//NewSMSClient return SmsRequest
 func NewSMSClient() SmsRequest {
 	r := SmsRequest{}
-	r.basePath = SMS
+	r.basePath = HOST + SMS
 	return r
 }
 
-func (r SmsRequest) sendRequest(method string, path string, params url.Values) (response *http.Response, err error) {
-	r.request, err = http.NewRequest(method, r.basePath+path, strings.NewReader(params.Encode()))
-	r.setHeaders()
+func (r *SmsRequest) new() {
+	r.params = make(url.Values)
+	r.client = http.Client{}
+}
+
+func (r SmsRequest) sendRequest(method string, path string) (response *http.Response, err error) {
+	r.request, err = http.NewRequest(method, r.basePath+path, strings.NewReader(r.params.Encode()))
+	if err != nil {
+		return
+	}
+	err = r.setHeaders()
+	if err != nil {
+		return
+	}
 	response, err = r.client.Do(r.request)
 
 	return
@@ -50,8 +62,9 @@ func (r SmsRequest) PutContactResource() {}
 
 //GetContactListCollection Retrieve a collection of SMS Lists that a contact belongs to along with subscription status
 func (r SmsRequest) GetContactListCollection(shortCodeID, phoneNumber int, cursor string, count int) (data ContactListCollectionResponse, err error) {
+	r.new()
 	path := fmt.Sprintf("/v1/ShortCode/%v/Contact/%v/PhoneList", shortCodeID, phoneNumber)
-	params := url.Values{}
+	//r.params = url.Values{}
 	if cursor == "" {
 		cursor = "Start"
 	}
@@ -61,9 +74,9 @@ func (r SmsRequest) GetContactListCollection(shortCodeID, phoneNumber int, curso
 	if count < 5000 {
 		count = 5000
 	}
-	params.Set("cursor", cursor)
-	params.Set("count", strconv.Itoa(count))
-	response, err := r.sendRequest("GET", path, params)
+	r.params.Set("cursor", cursor)
+	r.params.Set("count", strconv.Itoa(count))
+	response, err := r.sendRequest("GET", path)
 	if err != nil {
 		return
 	}
@@ -80,16 +93,18 @@ func (r SmsRequest) GetContactListCollection(shortCodeID, phoneNumber int, curso
 	case 200:
 		err = dec.Decode(&data)
 	case 400:
+		fallthrough
 	case 401:
+		fallthrough
 	case 404:
 		errResponse := ErrorResponse{}
 		if err = dec.Decode(&errResponse); err != nil {
 			err = fmt.Errorf("improper error response: %v", err)
 		} else {
-			err = fmt.Errorf("%v: %v", errResponse.Error, errResponse.Message)
+			err = errResponse.ToError()
 		}
 	default:
-		err = fmt.Errorf("unhandled StatusCode: %v", response.StatusCode)
+		err = ErrUnhandledStatusCode
 	}
 
 	return
@@ -117,7 +132,32 @@ func (r SmsRequest) GetPhoneAttribute() {}
 func (r SmsRequest) GetPhoneAttributeCollection() {}
 
 //GetShortCodeCollection Retrieve a collection of Short Code objects for a Company
-func (r SmsRequest) GetShortCodeCollection() {}
+func (r SmsRequest) GetShortCodeCollection() (data ShortCodeCollectionResponse, err error) {
+	r.new()
+	path := "v1/ShortCode"
+	response, err := r.sendRequest("get", path)
+	if err != nil {
+		return
+	}
+	dec := json.NewDecoder(response.Body)
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		errResponse := ErrorResponse{}
+		if err = dec.Decode(&errResponse); err != nil {
+			err = fmt.Errorf("improper error response: %v", err)
+		} else {
+			err = fmt.Errorf("%v: %v", errResponse.Error, errResponse.Message)
+		}
+	default:
+		err = ErrUnhandledStatusCode
+	}
+
+	return
+}
 
 //GetShortCodeResource Retrieve a single SMS Short Code by Short Code ID
 func (r SmsRequest) GetShortCodeResource() {}

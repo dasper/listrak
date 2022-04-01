@@ -18,16 +18,17 @@ var clientSecret string
 var tokenData AuthenticationResponse
 
 type baseRequest struct {
-	client  http.Client
+	params  url.Values
 	request *http.Request
+	client  http.Client
 }
 
 //AuthenticationResponse from Listrak
 type AuthenticationResponse struct {
+	expiresAt   time.Time
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
 	ExpiresIn   int64  `json:"expires_in"`
-	expiresAt   time.Time
 }
 
 //Initialize auth for bearerToken
@@ -38,6 +39,7 @@ func Initialize(id, secret string) (err error) {
 	if err != nil {
 		clientID = ""
 		clientSecret = ""
+		return
 	}
 	return
 }
@@ -54,25 +56,32 @@ func setAuthToken() (err error) {
 	form.Add("client_id", clientID)
 	form.Add("client_secret", clientSecret)
 
-	resp, err := http.Post(HOST+OAuth2+"/Token", "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	response, err := http.Post(HOST+OAuth2+"/Token", "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
 	if err != nil {
 		err = fmt.Errorf("failed setting up auth request: %v", err.Error())
 		return
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		err = fmt.Errorf("failed reading body: %v", err.Error())
 		return
 	}
 
 	var auth AuthenticationResponse
-	err = json.Unmarshal(body, &auth)
+	switch response.StatusCode {
+	case 200:
+		err = json.Unmarshal(body, &auth)
+	case 404:
+		err = ErrNotFound
+	default:
+		err = ErrUnhandledStatusCode
+	}
 	if err != nil {
 		err = fmt.Errorf("failed reading the auth response: %v", err.Error())
 		return
 	}
-	auth.expiresAt = time.Unix(auth.ExpiresIn, 0)
+	auth.expiresAt = time.Now().Add(time.Duration(auth.ExpiresIn) * time.Second)
 	tokenData = auth
 	return
 }
@@ -89,11 +98,13 @@ func getAccessToken() (token string, err error) {
 	return
 }
 
-func (b baseRequest) setHeaders() {
+func (b baseRequest) setHeaders() (err error) {
 	token, err := getAccessToken()
 	if err != nil {
 		return
 	}
 	b.request.Header.Set("Content-Type", "application/json")
 	b.request.Header.Add("Authorization", "Bearer "+token)
+
+	return
 }
