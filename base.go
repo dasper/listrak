@@ -11,7 +11,7 @@ import (
 )
 
 const HOST = "https://api.listrak.com"
-const OAuth2 = "/OAuth2"
+const AuthServer = "https://auth.listrak.com/OAuth2/Token"
 
 var clientID string
 var clientSecret string
@@ -56,7 +56,7 @@ func setAuthToken() (err error) {
 	form.Add("client_id", clientID)
 	form.Add("client_secret", clientSecret)
 
-	response, err := http.Post(HOST+OAuth2+"/Token", "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	response, err := http.Post(AuthServer, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
 	if err != nil {
 		err = fmt.Errorf("failed setting up auth request: %v", err.Error())
 		return
