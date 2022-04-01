@@ -86,7 +86,10 @@ func (r SmsRequest) GetContactListCollection(shortCodeID, phoneNumber int, curso
 }
 
 //PostContactListSubscription Subscribes a contact to an SMS list. This will only subscribe contacts that already exist on the short code
-func (r SmsRequest) PostContactListSubscription() {}
+func (r SmsRequest) PostContactListSubscription(shortCodeId int, phoneNumber string, phoneListId int) {
+	path := fmt.Sprintf("v1/ShortCode/%v/Contact/%v/PhoneList/%v", shortCodeId, phoneNumber, phoneListId)
+	fmt.Println(path)
+}
 
 //DeleteUnsubscribeContactListSubscription Unsubscribes a contact from an SMS List
 func (r SmsRequest) DeleteUnsubscribeContactListSubscription() {}

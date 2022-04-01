@@ -43,9 +43,8 @@ func Initialize(id, secret string) (err error) {
 
 // get auth token
 func getAuthToken() (bearerToken string, err error) {
-
 	if clientID == "" || clientSecret == "" {
-		err = fmt.Errorf("api.go getAuthToken 1")
+		err = ErrInvalidCredentials
 		return
 	}
 

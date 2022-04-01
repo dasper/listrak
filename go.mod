@@ -1,3 +1,3 @@
 module github.com/dasper/listrak
 
-go 1.17
+go 1.11
