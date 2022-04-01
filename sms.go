@@ -32,6 +32,12 @@ func (r *SmsRequest) new() {
 }
 
 func (r SmsRequest) sendRequest(method string, path string) (response *http.Response, err error) {
+	method = strings.ToUpper(method)
+	firstCharacter := path[0:1]
+	if firstCharacter != "/" {
+		path = "/" + path
+	}
+	fmt.Println("Send Request To:", r.basePath+path)
 	r.request, err = http.NewRequest(method, r.basePath+path, strings.NewReader(r.params.Encode()))
 	if err != nil {
 		return
@@ -112,7 +118,7 @@ func (r SmsRequest) GetContactListCollection(shortCodeID, phoneNumber int, curso
 
 //PostContactListSubscription Subscribes a contact to an SMS list. This will only subscribe contacts that already exist on the short code
 func (r SmsRequest) PostContactListSubscription(shortCodeId int, phoneNumber string, phoneListId int) {
-	path := fmt.Sprintf("v1/ShortCode/%v/Contact/%v/PhoneList/%v", shortCodeId, phoneNumber, phoneListId)
+	path := fmt.Sprintf("/v1/ShortCode/%v/Contact/%v/PhoneList/%v", shortCodeId, phoneNumber, phoneListId)
 	fmt.Println(path)
 }
 
@@ -134,7 +140,7 @@ func (r SmsRequest) GetPhoneAttributeCollection() {}
 //GetShortCodeCollection Retrieve a collection of Short Code objects for a Company
 func (r SmsRequest) GetShortCodeCollection() (data ShortCodeCollectionResponse, err error) {
 	r.new()
-	path := "v1/ShortCode"
+	path := "/v1/ShortCode"
 	response, err := r.sendRequest("get", path)
 	if err != nil {
 		return
