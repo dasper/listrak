@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 const HOST = "https://api.listrak.com"
@@ -14,23 +15,26 @@ const OAuth2 = "/OAuth2"
 
 var clientID string
 var clientSecret string
-var bearerToken string
+var tokenData AuthenticationResponse
 
 type baseRequest struct {
-	params url.Values
-	client http.Client
+	client  http.Client
+	request *http.Request
 }
 
-type TokenResponse struct {
+//AuthenticationResponse from Listrak
+type AuthenticationResponse struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
-	ExpiresIn   int    `json:"expires_in"`
+	ExpiresIn   int64  `json:"expires_in"`
+	expiresAt   time.Time
 }
 
+//Initialize auth for bearerToken
 func Initialize(id, secret string) (err error) {
 	clientID = id
 	clientSecret = secret
-	bearerToken, err = getAuthToken()
+	err = setAuthToken()
 	if err != nil {
 		clientID = ""
 		clientSecret = ""
@@ -38,11 +42,8 @@ func Initialize(id, secret string) (err error) {
 	return
 }
 
-// build client
-//'headers' => ['Authorization' => 'Bearer ' . $accessToken],
-
 // get auth token
-func getAuthToken() (bearerToken string, err error) {
+func setAuthToken() (err error) {
 	if clientID == "" || clientSecret == "" {
 		err = ErrInvalidCredentials
 		return
@@ -55,39 +56,44 @@ func getAuthToken() (bearerToken string, err error) {
 
 	resp, err := http.Post(HOST+OAuth2+"/Token", "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
 	if err != nil {
-		err = fmt.Errorf("api.go getAuthToken 2")
+		err = fmt.Errorf("failed setting up auth request: %v", err.Error())
 		return
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		err = fmt.Errorf("api.go getAuthToken 3")
+		err = fmt.Errorf("failed reading body: %v", err.Error())
 		return
 	}
 
-	// Check if it has the 'access_token' info
-	if !strings.Contains(string(body), "access_token") {
-		err = fmt.Errorf("api.go getAuthToken 4")
-		return
-	}
-
-	var tr TokenResponse
-
-	err = json.Unmarshal(body, &tr)
+	var auth AuthenticationResponse
+	err = json.Unmarshal(body, &auth)
 	if err != nil {
-		err = fmt.Errorf("api.go getAuthToken 5")
+		err = fmt.Errorf("failed reading the auth response: %v", err.Error())
 		return
 	}
-
-	bearerToken = tr.AccessToken
-
-	if bearerToken == "" {
-		err = fmt.Errorf("api.go getAuthToken 6")
-		return
-	}
-
-	return bearerToken, err
+	auth.expiresAt = time.Unix(auth.ExpiresIn, 0)
+	tokenData = auth
+	return
 }
 
-// refresh if expired
-func refreshToken() {}
+func getAccessToken() (token string, err error) {
+	if tokenData.expiresAt.After(time.Now().Add(-5 * time.Minute)) {
+		err = setAuthToken()
+		if err != nil {
+			err = fmt.Errorf("failed token refresh: %v", err.Error())
+			return
+		}
+	}
+	token = tokenData.AccessToken
+	return
+}
+
+func (b baseRequest) setHeaders() {
+	token, err := getAccessToken()
+	if err != nil {
+		return
+	}
+	b.request.Header.Set("Content-Type", "application/json")
+	b.request.Header.Add("Authorization", "Bearer "+token)
+}

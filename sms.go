@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
 
+//SMS base url
 const SMS = "/sms"
 
 type SmsRequest struct {
@@ -16,10 +18,19 @@ type SmsRequest struct {
 	basePath string
 }
 
-func NewSMSRequest() SmsRequest {
+//NewSMSClient required to call SMS api
+func NewSMSClient() SmsRequest {
 	r := SmsRequest{}
 	r.basePath = SMS
 	return r
+}
+
+func (r SmsRequest) sendRequest(method string, path string, params url.Values) (response *http.Response, err error) {
+	r.request, err = http.NewRequest(method, r.basePath+path, strings.NewReader(params.Encode()))
+	r.setHeaders()
+	response, err = r.client.Do(r.request)
+
+	return
 }
 
 //PostImmediateBroadcast Immediately send an SMS broadcast message to all subscribed contacts on an SMS List
@@ -40,10 +51,7 @@ func (r SmsRequest) PutContactResource() {}
 //GetContactListCollection Retrieve a collection of SMS Lists that a contact belongs to along with subscription status
 func (r SmsRequest) GetContactListCollection(shortCodeID, phoneNumber int, cursor string, count int) (data ContactListCollectionResponse, err error) {
 	path := fmt.Sprintf("/v1/ShortCode/%v/Contact/%v/PhoneList", shortCodeID, phoneNumber)
-	get, err := http.NewRequest("GET", path, strings.NewReader(r.params.Encode()))
-	if err != nil {
-		return
-	}
+	params := url.Values{}
 	if cursor == "" {
 		cursor = "Start"
 	}
@@ -53,18 +61,20 @@ func (r SmsRequest) GetContactListCollection(shortCodeID, phoneNumber int, curso
 	if count < 5000 {
 		count = 5000
 	}
-	q := get.URL.Query()
-	q.Add("cursor", cursor)
-	q.Add("count", strconv.Itoa(count))
-	get.URL.RawQuery = q.Encode()
-	response, err := r.client.Do(get)
+	params.Set("cursor", cursor)
+	params.Set("count", strconv.Itoa(count))
+	response, err := r.sendRequest("GET", path, params)
+	if err != nil {
+		return
+	}
+
 	defer func(Body io.ReadCloser) {
 		err = Body.Close()
 		if err != nil {
 			return
 		}
 	}(response.Body)
-	dec := json.NewDecoder(get.Body)
+	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
 	case 200:
