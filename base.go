@@ -3,6 +3,7 @@ package listrak
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -18,7 +19,7 @@ var clientSecret string
 var tokenData AuthenticationResponse
 
 type baseRequest struct {
-	params  url.Values
+	payload io.Reader
 	request *http.Request
 	client  http.Client
 }
@@ -95,6 +96,16 @@ func getAccessToken() (token string, err error) {
 		}
 	}
 	token = tokenData.AccessToken
+	return
+}
+
+func handleErrorResponse(dec *json.Decoder) (err error) {
+	errResponse := ErrorResponse{}
+	if err = dec.Decode(&errResponse); err != nil {
+		err = fmt.Errorf("improper error response: %v", err)
+	} else {
+		err = errResponse.ToError()
+	}
 	return
 }
 
