@@ -51,6 +51,31 @@ type ShortCodeCollectionResponse struct {
 	Status         int                `json:"status"`
 }
 
+//SMSContactCollectionResponse #/definitions/Collection[SMSContact]
+type SMSContactCollectionResponse struct {
+	Data   []ShortCodeMessage `json:"data"`
+	Status int                `json:"status"`
+}
+
+// SMSContract #/definitions/SMSContact
+type SMSContract struct {
+	PhoneNumber             string                     `json:"phoneNumber,omitempty"`
+	EmailAddress            string                     `json:"emailAddress,omitempty"`
+	FirstName               string                     `json:"firstName,omitempty"`
+	LastName                string                     `json:"lastName,omitempty"`
+	Birthday                string                     `json:"birthday,omitempty"`
+	PostalCode              string                     `json:"postalCode,omitempty"`
+	OptedOut                bool                       `json:"optedOut,omitempty"`
+	SegmentationFieldValues []SMSPhoneContactAttribute `json:"segmentationFieldValues,omitempty"`
+}
+
+// SMSPhoneContactAttribute #/definitions/SMSPhoneContactAttribute
+type SMSPhoneContactAttribute struct {
+	SegmentationFieldID int    `json:"segmentationFieldId,omitempty"`
+	Value               string `json:"value,omitempty"`
+}
+
+// ShortCodeMessage #/definitions/ShortCode
 type ShortCodeMessage struct {
 	PhoneNumberSegmentationFieldGroupName       string `json:"phoneNumberSegmentationFieldGroupName"`
 	Code                                        string `json:"code"`
