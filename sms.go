@@ -53,7 +53,7 @@ func (r SmsRequest) sendRequest(method string, path string) (response *http.Resp
 }
 
 //PostImmediateBroadcast Immediately send an SMS broadcast message to all subscribed contacts on an SMS List
-func (r SmsRequest) PostImmediateBroadcast(shortCodeID int, broadcastMessage BroadcastMessageRequest) (data ResourceCreatedResponse, err error) {
+func (r SmsRequest) PostImmediateBroadcast(shortCodeID int, broadcastMessage BroadcastMessage) (data ResourceCreatedResponse, err error) {
 	r.newRequest()
 	path := fmt.Sprintf("/v1/ShortCode/%v/Broadcast/Immediate", shortCodeID)
 
@@ -91,9 +91,9 @@ func (r SmsRequest) PostImmediateBroadcast(shortCodeID int, broadcastMessage Bro
 }
 
 //GetContactCollection Returns all contacts that exist on a specific SMS list by opt-out status
-func (r SmsRequest) GetContactCollection(shortCodeID int, phoneListId int) (data SMSContactCollectionResponse, err error) {
+func (r SmsRequest) GetContactCollection(shortCodeID int, phoneListID int) (data SMSContactCollectionResponse, err error) {
 	r.newRequest()
-	path := fmt.Sprintf("/v1/ShortCode/%v/PhoneList/%v/Contact", shortCodeID, phoneListId)
+	path := fmt.Sprintf("/v1/ShortCode/%v/PhoneList/%v/Contact", shortCodeID, phoneListID)
 	response, err := r.sendRequest("GET", path)
 	if err != nil {
 		return
@@ -123,25 +123,108 @@ func (r SmsRequest) GetContactCollection(shortCodeID int, phoneListId int) (data
 }
 
 //PostContactListResource Creates and subscribes a new contact for a phone number if the contact does not already exist on the short code
-func (r SmsRequest) PostContactListResource(shortCodeID int, phoneListId int) {
-	path := "/v1/ShortCode/{shortCodeID}/PhoneList/{phoneListId}/Contact"
-	fmt.Println(path)
+func (r SmsRequest) PostContactListResource(shortCodeID int, phoneListID int, SMSContact SMSContact) (data ResourceCreatedResponse, err error) {
+	r.newRequest()
+	path := fmt.Sprintf("/v1/ShortCode/%v/PhoneList/%v/Contact", shortCodeID, phoneListID)
+	jsonData, err := json.Marshal(SMSContact)
+	if err != nil {
+		return
+	}
+	r.payload = bytes.NewBuffer(jsonData)
+	response, err := r.sendRequest("POST", path)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			return
+		}
+	}(response.Body)
+	dec := json.NewDecoder(response.Body)
+
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		fallthrough
+	case 404:
+		err = handleErrorResponse(dec)
+	default:
+		err = ErrUnhandledStatusCode
+	}
+
+	return
 }
 
 //GetContactResource Returns a contact for a phone number
-func (r SmsRequest) GetContactResource(shortCodeID int, phoneNumber int) {
-	path := "/v1/ShortCode/{shortCodeID}/Contact/{phoneNumber}"
-	fmt.Println(path)
+func (r SmsRequest) GetContactResource(shortCodeID int, phoneNumber int) (data SMSContactSubscriptionDetailsResponse, err error) {
+	r.newRequest()
+	path := fmt.Sprintf("/v1/ShortCode/%v/Contact/%v", shortCodeID, phoneNumber)
+	response, err := r.sendRequest("GET", path)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			return
+		}
+	}(response.Body)
+	dec := json.NewDecoder(response.Body)
+
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		fallthrough
+	case 404:
+		err = handleErrorResponse(dec)
+	default:
+		err = ErrUnhandledStatusCode
+	}
+
+	return
 }
 
 //PutContactResource Updates a contact's information for a phone number
-func (r SmsRequest) PutContactResource(shortCodeID int) {
-	path := "/v1/ShortCode/{shortCodeID}/Contact"
-	fmt.Println(path)
+func (r SmsRequest) PutContactResource(shortCodeID int) (data ResourceUpdatedResponse, err error) {
+	r.newRequest()
+	path := fmt.Sprintf("/v1/ShortCode/%v/Contact", shortCodeID)
+	response, err := r.sendRequest("PUT", path)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			return
+		}
+	}(response.Body)
+	dec := json.NewDecoder(response.Body)
+
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		fallthrough
+	case 404:
+		err = handleErrorResponse(dec)
+	default:
+		err = ErrUnhandledStatusCode
+	}
+
+	return
 }
 
 //GetContactListCollection Retrieve a collection of SMS Lists that a contact belongs to along with subscription status
-func (r SmsRequest) GetContactListCollection(shortCodeID, phoneNumber int, cursor string, count int) (data ContactListCollectionResponse, err error) {
+func (r SmsRequest) GetContactListCollection(shortCodeID, phoneNumber int, cursor string, count int) (data ContactListSubscriptionResponse, err error) {
 	path := fmt.Sprintf("/v1/ShortCode/%v/Contact/%v/PhoneList", shortCodeID, phoneNumber)
 	if cursor == "" {
 		cursor = "Start"
@@ -186,39 +269,189 @@ func (r SmsRequest) GetContactListCollection(shortCodeID, phoneNumber int, curso
 }
 
 //PostContactListSubscription Subscribes a contact to an SMS list. This will only subscribe contacts that already exist on the short code
-func (r SmsRequest) PostContactListSubscription(shortCodeID int, phoneNumber string, phoneListId int) {
-	path := fmt.Sprintf("/v1/ShortCode/%v/Contact/%v/PhoneList/%v", shortCodeID, phoneNumber, phoneListId)
-	fmt.Println(path)
+func (r SmsRequest) PostContactListSubscription(shortCodeID int, phoneNumber string, phoneListID int) (data ResourceCreatedResponse, err error) {
+	path := fmt.Sprintf("/v1/ShortCode/%v/Contact/%v/PhoneList/%v", shortCodeID, phoneNumber, phoneListID)
+	response, err := r.sendRequest("POST", path)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			return
+		}
+	}(response.Body)
+	dec := json.NewDecoder(response.Body)
+
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		fallthrough
+	case 404:
+		err = handleErrorResponse(dec)
+	default:
+		err = ErrUnhandledStatusCode
+	}
+
+	return
 }
 
 //DeleteUnsubscribeContactListSubscription Unsubscribes a contact from an SMS List
-func (r SmsRequest) DeleteUnsubscribeContactListSubscription(shortCodeID int, phoneNumber int, phoneListId int) {
-	path := "/v1/ShortCode/{shortCodeID}/ContactUnsubscribe/{phoneNumber}/PhoneList/{phoneListId}"
-	fmt.Println(path)
+func (r SmsRequest) DeleteUnsubscribeContactListSubscription(shortCodeID int, phoneNumber int, phoneListID int) (data ResourceDeletedResponse, err error) {
+	path := fmt.Sprintf("/v1/ShortCode/%v/ContactUnsubscribe/%v/PhoneList/%v", shortCodeID, phoneNumber, phoneListID)
+	response, err := r.sendRequest("DELETE", path)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			return
+		}
+	}(response.Body)
+	dec := json.NewDecoder(response.Body)
+
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		fallthrough
+	case 404:
+		err = handleErrorResponse(dec)
+	default:
+		err = ErrUnhandledStatusCode
+	}
+
+	return
 }
 
 //GetListCollection Retrieve a collection of SMS Lists for a shortcode by list status
-func (r SmsRequest) GetListCollection(shortCodeID int) {
-	path := "/v1/ShortCode/{shortCodeID}/PhoneList"
-	fmt.Println(path)
+func (r SmsRequest) GetListCollection(shortCodeID int) (data PhoneListCollectionResponse, err error) {
+	path := fmt.Sprintf("/v1/ShortCode/%v/PhoneList", shortCodeID)
+	response, err := r.sendRequest("GET", path)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			return
+		}
+	}(response.Body)
+	dec := json.NewDecoder(response.Body)
+
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		fallthrough
+	case 404:
+		err = handleErrorResponse(dec)
+	default:
+		err = ErrUnhandledStatusCode
+	}
+
+	return
 }
 
 //GetListResource Retrieve a single SMS List by List ID
-func (r SmsRequest) GetListResource(shortCodeID int, phoneListId int) {
-	path := "/v1/ShortCode/{shortCodeID}/PhoneList/{phoneListId}"
-	fmt.Println(path)
+func (r SmsRequest) GetListResource(shortCodeID int, phoneListID int) (data PhoneListResponse, err error) {
+	path := fmt.Sprintf("/v1/ShortCode/%v/PhoneList/%v", shortCodeID, phoneListID)
+	response, err := r.sendRequest("GET", path)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			return
+		}
+	}(response.Body)
+	dec := json.NewDecoder(response.Body)
+
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		fallthrough
+	case 404:
+		err = handleErrorResponse(dec)
+	default:
+		err = ErrUnhandledStatusCode
+	}
+
+	return
 }
 
 //GetPhoneAttribute Returns the specified profile field
-func (r SmsRequest) GetPhoneAttribute(shortCodeID int) {
-	path := "/v1/ShortCode/{shortCodeID}/SegmentationField/{segmentationFieldId}"
-	fmt.Println(path)
+func (r SmsRequest) GetPhoneAttribute(shortCodeID int, segmentationFieldID int) (data PhoneAttributeResponse, err error) {
+	path := fmt.Sprintf("/v1/ShortCode/%v/SegmentationField/%v", shortCodeID, segmentationFieldID)
+	response, err := r.sendRequest("GET", path)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			return
+		}
+	}(response.Body)
+	dec := json.NewDecoder(response.Body)
+
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		fallthrough
+	case 404:
+		err = handleErrorResponse(dec)
+	default:
+		err = ErrUnhandledStatusCode
+	}
+
+	return
 }
 
 //GetPhoneAttributeCollection Returns the collection of profile fields that exist for the company associated with the specified Short Code
-func (r SmsRequest) GetPhoneAttributeCollection(shortCodeID int) {
-	path := "/v1/ShortCode/{shortCodeID}/SegmentationField"
-	fmt.Println(path)
+func (r SmsRequest) GetPhoneAttributeCollection(shortCodeID int) (data PhoneAttributeCollectionResponse, err error) {
+	path := fmt.Sprintf("/v1/ShortCode/%v/SegmentationField", shortCodeID)
+	response, err := r.sendRequest("GET", path)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			return
+		}
+	}(response.Body)
+	dec := json.NewDecoder(response.Body)
+
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		fallthrough
+	case 404:
+		err = handleErrorResponse(dec)
+	default:
+		err = ErrUnhandledStatusCode
+	}
+
+	return
 }
 
 //GetShortCodeCollection Retrieve a collection of Short Code objects for a Company
@@ -245,34 +478,108 @@ func (r SmsRequest) GetShortCodeCollection() (data ShortCodeCollectionResponse, 
 }
 
 //GetShortCodeResource Retrieve a single SMS Short Code by Short Code ID
-func (r SmsRequest) GetShortCodeResource(shortCodeID int) {
-	path := "/v1/ShortCode/{shortCodeID}"
-	fmt.Println(path)
+func (r SmsRequest) GetShortCodeResource(shortCodeID int) (data ShortCodeResponse, err error) {
+	path := fmt.Sprintf("/v1/ShortCode/%v", shortCodeID)
+	response, err := r.sendRequest("get", path)
+	if err != nil {
+		return
+	}
+	dec := json.NewDecoder(response.Body)
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		err = handleErrorResponse(dec)
+	default:
+		err = ErrUnhandledStatusCode
+	}
+
+	return
 }
 
 //GetTransactionalMessageCollection Retrieve a Collection of Transactional SMS Message for an SMS List
-func (r SmsRequest) GetTransactionalMessageCollection(shortCodeID int, phoneListId int) {
+func (r SmsRequest) GetTransactionalMessageCollection(shortCodeID int, phoneListID int) (data TransactionalMessageCollectionResponse, err error) {
 	path := fmt.Sprintf(
 		"/v1/ShortCode/%v/PhoneList/%v/TransactionalMessage",
-		shortCodeID, phoneListId,
+		shortCodeID, phoneListID,
 	)
-	fmt.Println(path)
+	response, err := r.sendRequest("get", path)
+	if err != nil {
+		return
+	}
+	dec := json.NewDecoder(response.Body)
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		err = handleErrorResponse(dec)
+	default:
+		err = ErrUnhandledStatusCode
+	}
+
+	return
 }
 
 //GetTransactionalMessageResource Retrieve a single Transactional SMS Message for an SMS List by ID
-func (r SmsRequest) GetTransactionalMessageResource(shortCodeID int, phoneListId int, transactionalMessageId int) {
+func (r SmsRequest) GetTransactionalMessageResource(shortCodeID int, phoneListID int, transactionalMessageID int) (data TransactionalMessageResponse, err error) {
 	path := fmt.Sprintf(
 		"/v1/ShortCode/%v/PhoneList/%v/TransactionalMessage/%v",
-		shortCodeID, phoneListId, transactionalMessageId,
+		shortCodeID, phoneListID, transactionalMessageID,
 	)
-	fmt.Println(path)
+	response, err := r.sendRequest("get", path)
+	if err != nil {
+		return
+	}
+	dec := json.NewDecoder(response.Body)
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		err = handleErrorResponse(dec)
+	default:
+		err = ErrUnhandledStatusCode
+	}
+
+	return
 }
 
 //PostTransactionalMessageSend Send a single Transactional SMS Message for an SMS List by ID
-func (r SmsRequest) PostTransactionalMessageSend(shortCodeID int, phoneListId int, transactionalMessageId int) {
+func (r SmsRequest) PostTransactionalMessageSend(shortCodeID int, phoneListID int, transactionalMessageID int) (data ResourceCreatedResponse, err error) {
 	path := fmt.Sprintf(
 		"/v1/ShortCode/%v/PhoneList/%v/TransactionalMessage/%v/Message",
-		shortCodeID, phoneListId, transactionalMessageId,
+		shortCodeID, phoneListID, transactionalMessageID,
 	)
-	fmt.Println(path)
+
+	response, err := r.sendRequest("POST", path)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			return
+		}
+	}(response.Body)
+	dec := json.NewDecoder(response.Body)
+
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		fallthrough
+	case 404:
+		err = handleErrorResponse(dec)
+	default:
+		err = ErrUnhandledStatusCode
+	}
+
+	return
 }

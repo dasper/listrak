@@ -21,27 +21,16 @@ func (e ErrorResponse) ToError() error {
 	return fmt.Errorf("%v (%v): %v", e.Status, e.Error, e.Message)
 }
 
+// TransactionalMessageResponse #/definitions/TransactionalMessage
 type TransactionalMessageResponse struct {
-	Data   TransactionalMessage `json:"data"`
-	Status int                  `json:"status"`
+	TransactionalMessage
 }
 
-type ContactListCollectionResponse struct {
-	NextPageCursor string        `json:"nextPageCursor"`
-	Data           []ContactList `json:"data"`
-	Status         int           `json:"status"`
-}
-
-type ContactList struct {
-	SubscriptionState string `json:"subscriptionState"`
-	SubscribeDate     string `json:"subscribeDate"`
-	PhoneListId       int32  `json:"phoneListId"`
-}
-
-type TransactionalMessage struct {
-	TransactionalMessageName   string `json:"transactionalMessageName"`
-	TransactionalMessageStatus string `json:"transactionalMessageStatus"`
-	TransactionalMessageID     int32  `json:"transactionalMessageId"`
+// ContactListSubscriptionResponse #/definitions/Collection[ContactListSubscription]
+type ContactListSubscriptionResponse struct {
+	NextPageCursor string                    `json:"nextPageCursor"`
+	Data           []ContactListSubscription `json:"data"`
+	Status         int                       `json:"status"`
 }
 
 //ShortCodeCollectionResponse #/definitions/Collection[ShortCode]
@@ -51,46 +40,60 @@ type ShortCodeCollectionResponse struct {
 	Status         int                `json:"status"`
 }
 
+// SMSContactSubscriptionDetailsResponse #/definitions/Resource[SMSContactSubscriptionDetails]
+type SMSContactSubscriptionDetailsResponse struct {
+	Data   SMSContactSubscriptionDetails `json:"data"`
+	Status int                           `json:"status"`
+}
+
+// ResourceUpdatedResponse #/definitions/ResourceUpdated
+type ResourceUpdatedResponse struct {
+	Status     int    `json:"status"`
+	ResourceID string `json:"resourceId"`
+}
+
 //SMSContactCollectionResponse #/definitions/Collection[SMSContact]
 type SMSContactCollectionResponse struct {
 	Data   []ShortCodeMessage `json:"data"`
 	Status int                `json:"status"`
 }
 
-// SMSContract #/definitions/SMSContact
-type SMSContract struct {
-	PhoneNumber             string                     `json:"phoneNumber,omitempty"`
-	EmailAddress            string                     `json:"emailAddress,omitempty"`
-	FirstName               string                     `json:"firstName,omitempty"`
-	LastName                string                     `json:"lastName,omitempty"`
-	Birthday                string                     `json:"birthday,omitempty"`
-	PostalCode              string                     `json:"postalCode,omitempty"`
-	OptedOut                bool                       `json:"optedOut,omitempty"`
-	SegmentationFieldValues []SMSPhoneContactAttribute `json:"segmentationFieldValues,omitempty"`
+// ResourceDeletedResponse #/definitions/ResourceDeleted
+type ResourceDeletedResponse struct {
+	Status int `json:"status"`
 }
 
-// SMSPhoneContactAttribute #/definitions/SMSPhoneContactAttribute
-type SMSPhoneContactAttribute struct {
-	SegmentationFieldID int    `json:"segmentationFieldId,omitempty"`
-	Value               string `json:"value,omitempty"`
+// PhoneListCollectionResponse #/definitions/Collection[PhoneList]
+type PhoneListCollectionResponse struct {
+	Status int         `json:"status"`
+	Data   []PhoneList `json:"data"`
 }
 
-// ShortCodeMessage #/definitions/ShortCode
-type ShortCodeMessage struct {
-	PhoneNumberSegmentationFieldGroupName       string `json:"phoneNumberSegmentationFieldGroupName"`
-	Code                                        string `json:"code"`
-	Country                                     string `json:"country"`
-	MerchantName                                string `json:"merchantName"`
-	AcquisitionSourceSegmentationFieldGroupName string `json:"acquisitionSourceSegmentationFieldGroupName"`
-	EmailListName                               string `json:"emailListName"`
-	PhoneNumberSegmentationFieldName            string `json:"phoneNumberSegmentationFieldName"`
-	ExternalEventName                           string `json:"externalEventName"`
-	AcquisitionSourceSegmentationFieldName      string `json:"acquisitionSourceSegmentationFieldName"`
-	PhoneNumberSegmentationFieldGroupId         int    `json:"phoneNumberSegmentationFieldGroupId"`
-	PhoneNumberSegmentationFieldId              int    `json:"phoneNumberSegmentationFieldId"`
-	ExternalEventId                             int    `json:"externalEventId"`
-	AcquisitionSourceSegmentationFieldGroupId   int    `json:"acquisitionSourceSegmentationFieldGroupId"`
-	EmailListId                                 int    `json:"emailListId"`
-	AcquisitionSourceSegmentationFieldId        int    `json:"acquisitionSourceSegmentationFieldId"`
-	ShortCodeId                                 int    `json:"shortCodeId"`
+// PhoneAttributeCollectionResponse #/definitions/Collection[PhoneAttribute]
+type PhoneAttributeCollectionResponse struct {
+	Status int              `json:"status"`
+	Data   []PhoneAttribute `json:"data"`
+}
+
+// PhoneListResponse #/definitions/PhoneList
+type PhoneListResponse struct {
+	PhoneList
+}
+
+// PhoneAttributeResponse #/definitions/Resource[PhoneAttribute]
+type PhoneAttributeResponse struct {
+	Status int            `json:"status"`
+	Data   PhoneAttribute `json:"data"`
+}
+
+// ShortCodeResponse #/definitions/Resource[ShortCode]
+type ShortCodeResponse struct {
+	Status int              `json:"status"`
+	Data   ShortCodeMessage `json:"data"`
+}
+
+// TransactionalMessageCollectionResponse #/definitions/Collection[TransactionalMessage]
+type TransactionalMessageCollectionResponse struct {
+	Status int                    `json:"status"`
+	Data   []TransactionalMessage `json:"data"`
 }
