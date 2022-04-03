@@ -1,6 +1,7 @@
 package email
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -88,8 +89,47 @@ func (r Request) PostSegmentationFieldGroupResource()          {}
 func (r Request) GetSegmentationFieldGroupResource()           {}
 func (r Request) PutSegmentationFieldGroupResource()           {}
 func (r Request) DeleteSegmentationFieldGroupResource()        {}
-func (r Request) PostTransactionalMessageSend()                {}
 
+// PostTransactionalMessageSend Sends a message based on a previously-created transactional message
+func (r Request) PostTransactionalMessageSend(listID int, transactionalMessageID int, contactResource TransactionalMessageContact) (data ResourceCreatedResponse, err error) {
+	r.NewRequest()
+	path := fmt.Sprintf("/v1/List/%v/TransactionalMessage/%v/Message", listID, transactionalMessageID)
+
+	jsonData, err := json.Marshal(contactResource)
+	if err != nil {
+		return
+	}
+	r.Payload = bytes.NewBuffer(jsonData)
+
+	response, err := r.SendRequest("POST", path)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			return
+		}
+	}(response.Body)
+	dec := json.NewDecoder(response.Body)
+
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		fallthrough
+	case 404:
+		err = listrak.HandleErrorResponse(dec)
+	default:
+		err = listrak.ErrUnhandledStatusCode
+	}
+
+	return
+}
+
+// GetTransactionalMessageCollection Returns the collection of transactional messages associated with the specified list
 func (r Request) GetTransactionalMessageCollection(listID int) (data TransactionalMessageCollectionResponse, err error) {
 	r.NewRequest()
 	path := fmt.Sprintf("/v1/List/%v/TransactionalMessage", listID)
@@ -120,5 +160,67 @@ func (r Request) GetTransactionalMessageCollection(listID int) (data Transaction
 
 	return
 }
-func (r Request) GetTransactionalMessageResource()           {}
-func (r Request) GetTransactionalMessageActivityCollection() {}
+
+// GetTransactionalMessageResource Returns the specified transactional message
+func (r Request) GetTransactionalMessageResource(listID int, transactionalMessageID int) (data TransactionalMessageResponse, err error) {
+	r.NewRequest()
+	path := fmt.Sprintf("/v1/List/%v/TransactionalMessage/%v", listID, transactionalMessageID)
+	response, err := r.SendRequest("GET", path)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			return
+		}
+	}(response.Body)
+	dec := json.NewDecoder(response.Body)
+
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		fallthrough
+	case 404:
+		err = listrak.HandleErrorResponse(dec)
+	default:
+		err = listrak.ErrUnhandledStatusCode
+	}
+
+	return
+}
+
+// GetTransactionalMessageActivityCollection Returns the collection of activity associated with the specified transactional message. If an email address is provided, returns only the activity associated with that email
+func (r Request) GetTransactionalMessageActivityCollection(listID int, transactionalMessageID int) (data MessageActivityCollectionResponse, err error) {
+	r.NewRequest()
+	path := fmt.Sprintf("/v1/List/%v/TransactionalMessage/%v/Activity", listID, transactionalMessageID)
+	response, err := r.SendRequest("GET", path)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			return
+		}
+	}(response.Body)
+	dec := json.NewDecoder(response.Body)
+
+	switch response.StatusCode {
+	case 200:
+		err = dec.Decode(&data)
+	case 400:
+		fallthrough
+	case 401:
+		fallthrough
+	case 404:
+		err = listrak.HandleErrorResponse(dec)
+	default:
+		err = listrak.ErrUnhandledStatusCode
+	}
+
+	return
+}
