@@ -48,8 +48,8 @@ type SMSContactSubscriptionDetailsResponse struct {
 
 // ResourceUpdatedResponse #/definitions/ResourceUpdated
 type ResourceUpdatedResponse struct {
-	Status     int    `json:"status"`
 	ResourceID string `json:"resourceId"`
+	Status     int    `json:"status"`
 }
 
 //SMSContactCollectionResponse #/definitions/Collection[SMSContact]
@@ -65,14 +65,14 @@ type ResourceDeletedResponse struct {
 
 // PhoneListCollectionResponse #/definitions/Collection[PhoneList]
 type PhoneListCollectionResponse struct {
-	Status int         `json:"status"`
 	Data   []PhoneList `json:"data"`
+	Status int         `json:"status"`
 }
 
 // PhoneAttributeCollectionResponse #/definitions/Collection[PhoneAttribute]
 type PhoneAttributeCollectionResponse struct {
-	Status int              `json:"status"`
 	Data   []PhoneAttribute `json:"data"`
+	Status int              `json:"status"`
 }
 
 // PhoneListResponse #/definitions/PhoneList
@@ -82,18 +82,18 @@ type PhoneListResponse struct {
 
 // PhoneAttributeResponse #/definitions/Resource[PhoneAttribute]
 type PhoneAttributeResponse struct {
-	Status int            `json:"status"`
 	Data   PhoneAttribute `json:"data"`
+	Status int            `json:"status"`
 }
 
 // ShortCodeResponse #/definitions/Resource[ShortCode]
 type ShortCodeResponse struct {
-	Status int              `json:"status"`
 	Data   ShortCodeMessage `json:"data"`
+	Status int              `json:"status"`
 }
 
 // TransactionalMessageCollectionResponse #/definitions/Collection[TransactionalMessage]
 type TransactionalMessageCollectionResponse struct {
-	Status int                    `json:"status"`
 	Data   []TransactionalMessage `json:"data"`
+	Status int                    `json:"status"`
 }

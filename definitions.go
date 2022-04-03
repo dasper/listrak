@@ -2,10 +2,10 @@ package listrak
 
 // BroadcastMessage #/definitions/BroadcastMessage
 type BroadcastMessage struct {
-	PhoneListID         int    `json:"phoneListId"`
 	MessageContent      string `json:"messageContent"`
 	MessageTitle        string `json:"messageTitle"`
 	SegmentationFieldID string `json:"segmentationFieldId"`
+	PhoneListID         int    `json:"phoneListId"`
 }
 
 // ContactListSubscription #/definitions/ContactListSubscription
@@ -30,8 +30,8 @@ type SMSContact struct {
 	LastName                string                     `json:"lastName,omitempty"`
 	Birthday                string                     `json:"birthday,omitempty"`
 	PostalCode              string                     `json:"postalCode,omitempty"`
-	OptedOut                bool                       `json:"optedOut,omitempty"`
 	SegmentationFieldValues []SMSPhoneContactAttribute `json:"segmentationFieldValues,omitempty"`
+	OptedOut                bool                       `json:"optedOut,omitempty"`
 }
 
 // ShortCodeMessage #/definitions/ShortCode
@@ -64,33 +64,33 @@ type SMSContactSubscriptionDetails struct {
 	LastName                string                     `json:"lastName"`
 	Birthday                string                     `json:"birthday"`
 	PostalCode              string                     `json:"postalCode"`
-	OptedOut                bool                       `json:"optedOut"`
 	SegmentationFieldValues []SMSPhoneContactAttribute `json:"segmentationFieldValues"`
+	OptedOut                bool                       `json:"optedOut"`
 }
 
 // SMSPhoneContactAttribute #/definitions/SMSPhoneContactAttribute
 type SMSPhoneContactAttribute struct {
-	SegmentationFieldID int    `json:"segmentationFieldId,omitempty"`
 	Value               string `json:"value,omitempty"`
+	SegmentationFieldID int    `json:"segmentationFieldId,omitempty"`
 }
 
 // PhoneList #/definitions/PhoneList
 type PhoneList struct {
-	PhoneListID           int    `json:"phoneListId"`
+	MessageLimitTimeFrame string `json:"messageLimitTimeFrame"`
 	PhoneListName         string `json:"phoneListName"`
 	CreateDate            string `json:"createDate"`
 	Status                string `json:"status"`
 	SmsListType           string `json:"smsListType"`
 	MessageLimit          int    `json:"messageLimit"`
-	MessageLimitTimeFrame string `json:"messageLimitTimeFrame"`
+	PhoneListID           int    `json:"phoneListId"`
 	RequireDoubleOptIn    bool   `json:"requireDoubleOptIn"`
 }
 
 // PhoneAttribute #/definitions/PhoneAttribute
 type PhoneAttribute struct {
-	SegmentationFieldID   int    `json:"segmentationFieldId"`
 	SegmentationFieldName string `json:"segmentationFieldName"`
 	DataType              string `json:"dataType"`
-	MaxLength             int    `json:"maxLength"`
 	StatusFlag            string `json:"statusFlag"`
+	SegmentationFieldID   int    `json:"segmentationFieldId"`
+	MaxLength             int    `json:"maxLength"`
 }
