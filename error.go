@@ -104,7 +104,6 @@ var ErrTestFlagAndSendDateSet = errors.New("sendTestMessage set to true and send
 
 var ErrSegmentationFieldGroupLimitMet = errors.New("maximum number of profile field groups have already been created for the list")
 
-// Transactional Message
 var ErrSegmentationFieldDefinedTwice = errors.New("two or more values were supplied for the same segmentationFieldId")
 var ErrTransactionalMessageExternalContent = errors.New("contains external content tags")
 var ErrTransactionalMessageSYSTEMLink = errors.New("contains system link tags")

@@ -1,68 +1,43 @@
-package listrak
+package sms
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/dasper/listrak"
 )
 
 //SMS base url
 const SMS = "/sms"
 
-//SmsRequest required to call SMS api
-type SmsRequest struct {
-	baseRequest
-	basePath string
+//Request required to call SMS api
+type Request struct {
+	listrak.BaseRequest
 }
 
-//NewSMSClient return SmsRequest
-func NewSMSClient() SmsRequest {
-	r := SmsRequest{}
-	r.basePath = HOST + SMS
+//NewClient //NewClient returns new SMS Request client
+func NewClient() Request {
+	r := Request{}
+	r.SetBasePath(listrak.HOST + SMS)
 	return r
 }
 
-func (r *SmsRequest) newRequest() {
-	r.payload = bytes.NewBuffer(nil)
-	r.client = http.Client{}
-}
-
-func (r SmsRequest) sendRequest(method string, path string) (response *http.Response, err error) {
-	method = strings.ToUpper(method)
-	firstCharacter := path[0:1]
-	if firstCharacter != "/" {
-		path = "/" + path
-	}
-	fullPath := r.basePath + path
-	r.request, err = http.NewRequest(method, fullPath, r.payload)
-	if err != nil {
-		return
-	}
-	err = r.setHeaders()
-	if err != nil {
-		return
-	}
-	response, err = r.client.Do(r.request)
-
-	return
-}
-
 //PostImmediateBroadcast Immediately send an SMS broadcast message to all subscribed contacts on an SMS List
-func (r SmsRequest) PostImmediateBroadcast(shortCodeID int, broadcastMessage BroadcastMessage) (data ResourceCreatedResponse, err error) {
-	r.newRequest()
+func (r Request) PostImmediateBroadcast(shortCodeID int, broadcastMessage BroadcastMessage) (data ResourceCreatedResponse, err error) {
+	r.NewRequest()
 	path := fmt.Sprintf("/v1/ShortCode/%v/Broadcast/Immediate", shortCodeID)
 
 	jsonData, err := json.Marshal(broadcastMessage)
 	if err != nil {
 		return
 	}
-	r.payload = bytes.NewBuffer(jsonData)
-	response, err := r.sendRequest("POST", path)
+	r.Payload = bytes.NewBuffer(jsonData)
+	response, err := r.SendRequest("POST", path)
 	if err != nil {
 		return
 	}
@@ -82,19 +57,19 @@ func (r SmsRequest) PostImmediateBroadcast(shortCodeID int, broadcastMessage Bro
 	case 401:
 		fallthrough
 	case 404:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //GetContactCollection Returns all contacts that exist on a specific SMS list by opt-out status
-func (r SmsRequest) GetContactCollection(shortCodeID int, phoneListID int) (data SMSContactCollectionResponse, err error) {
-	r.newRequest()
+func (r Request) GetContactCollection(shortCodeID int, phoneListID int) (data ContactCollectionResponse, err error) {
+	r.NewRequest()
 	path := fmt.Sprintf("/v1/ShortCode/%v/PhoneList/%v/Contact", shortCodeID, phoneListID)
-	response, err := r.sendRequest("GET", path)
+	response, err := r.SendRequest("GET", path)
 	if err != nil {
 		return
 	}
@@ -114,24 +89,24 @@ func (r SmsRequest) GetContactCollection(shortCodeID int, phoneListID int) (data
 	case 401:
 		fallthrough
 	case 404:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //PostContactListResource Creates and subscribes a new contact for a phone number if the contact does not already exist on the short code
-func (r SmsRequest) PostContactListResource(shortCodeID int, phoneListID int, SMSContact SMSContact) (data ResourceCreatedResponse, err error) {
-	r.newRequest()
+func (r Request) PostContactListResource(shortCodeID int, phoneListID int, SMSContact Contact) (data ResourceCreatedResponse, err error) {
+	r.NewRequest()
 	path := fmt.Sprintf("/v1/ShortCode/%v/PhoneList/%v/Contact", shortCodeID, phoneListID)
 	jsonData, err := json.Marshal(SMSContact)
 	if err != nil {
 		return
 	}
-	r.payload = bytes.NewBuffer(jsonData)
-	response, err := r.sendRequest("POST", path)
+	r.Payload = bytes.NewBuffer(jsonData)
+	response, err := r.SendRequest("POST", path)
 	if err != nil {
 		return
 	}
@@ -151,19 +126,19 @@ func (r SmsRequest) PostContactListResource(shortCodeID int, phoneListID int, SM
 	case 401:
 		fallthrough
 	case 404:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //GetContactResource Returns a contact for a phone number
-func (r SmsRequest) GetContactResource(shortCodeID int, phoneNumber int) (data SMSContactSubscriptionDetailsResponse, err error) {
-	r.newRequest()
+func (r Request) GetContactResource(shortCodeID int, phoneNumber int) (data ContactSubscriptionDetailsResponse, err error) {
+	r.NewRequest()
 	path := fmt.Sprintf("/v1/ShortCode/%v/Contact/%v", shortCodeID, phoneNumber)
-	response, err := r.sendRequest("GET", path)
+	response, err := r.SendRequest("GET", path)
 	if err != nil {
 		return
 	}
@@ -183,19 +158,19 @@ func (r SmsRequest) GetContactResource(shortCodeID int, phoneNumber int) (data S
 	case 401:
 		fallthrough
 	case 404:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //PutContactResource Updates a contact's information for a phone number
-func (r SmsRequest) PutContactResource(shortCodeID int) (data ResourceUpdatedResponse, err error) {
-	r.newRequest()
+func (r Request) PutContactResource(shortCodeID int) (data ResourceUpdatedResponse, err error) {
+	r.NewRequest()
 	path := fmt.Sprintf("/v1/ShortCode/%v/Contact", shortCodeID)
-	response, err := r.sendRequest("PUT", path)
+	response, err := r.SendRequest("PUT", path)
 	if err != nil {
 		return
 	}
@@ -215,16 +190,16 @@ func (r SmsRequest) PutContactResource(shortCodeID int) (data ResourceUpdatedRes
 	case 401:
 		fallthrough
 	case 404:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //GetContactListCollection Retrieve a collection of SMS Lists that a contact belongs to along with subscription status
-func (r SmsRequest) GetContactListCollection(shortCodeID, phoneNumber int, cursor string, count int) (data ContactListSubscriptionResponse, err error) {
+func (r Request) GetContactListCollection(shortCodeID, phoneNumber int, cursor string, count int) (data ContactListSubscriptionResponse, err error) {
 	path := fmt.Sprintf("/v1/ShortCode/%v/Contact/%v/PhoneList", shortCodeID, phoneNumber)
 	if cursor == "" {
 		cursor = "Start"
@@ -238,8 +213,8 @@ func (r SmsRequest) GetContactListCollection(shortCodeID, phoneNumber int, curso
 	params := url.Values{}
 	params.Set("cursor", cursor)
 	params.Set("count", strconv.Itoa(count))
-	r.payload = strings.NewReader(params.Encode())
-	response, err := r.sendRequest("GET", path)
+	r.Payload = strings.NewReader(params.Encode())
+	response, err := r.SendRequest("GET", path)
 	if err != nil {
 		return
 	}
@@ -260,18 +235,18 @@ func (r SmsRequest) GetContactListCollection(shortCodeID, phoneNumber int, curso
 	case 401:
 		fallthrough
 	case 404:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //PostContactListSubscription Subscribes a contact to an SMS list. This will only subscribe contacts that already exist on the short code
-func (r SmsRequest) PostContactListSubscription(shortCodeID int, phoneNumber string, phoneListID int) (data ResourceCreatedResponse, err error) {
+func (r Request) PostContactListSubscription(shortCodeID int, phoneNumber string, phoneListID int) (data ResourceCreatedResponse, err error) {
 	path := fmt.Sprintf("/v1/ShortCode/%v/Contact/%v/PhoneList/%v", shortCodeID, phoneNumber, phoneListID)
-	response, err := r.sendRequest("POST", path)
+	response, err := r.SendRequest("POST", path)
 	if err != nil {
 		return
 	}
@@ -291,18 +266,18 @@ func (r SmsRequest) PostContactListSubscription(shortCodeID int, phoneNumber str
 	case 401:
 		fallthrough
 	case 404:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //DeleteUnsubscribeContactListSubscription Unsubscribes a contact from an SMS List
-func (r SmsRequest) DeleteUnsubscribeContactListSubscription(shortCodeID int, phoneNumber int, phoneListID int) (data ResourceDeletedResponse, err error) {
+func (r Request) DeleteUnsubscribeContactListSubscription(shortCodeID int, phoneNumber int, phoneListID int) (data ResourceDeletedResponse, err error) {
 	path := fmt.Sprintf("/v1/ShortCode/%v/ContactUnsubscribe/%v/PhoneList/%v", shortCodeID, phoneNumber, phoneListID)
-	response, err := r.sendRequest("DELETE", path)
+	response, err := r.SendRequest("DELETE", path)
 	if err != nil {
 		return
 	}
@@ -322,18 +297,18 @@ func (r SmsRequest) DeleteUnsubscribeContactListSubscription(shortCodeID int, ph
 	case 401:
 		fallthrough
 	case 404:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //GetListCollection Retrieve a collection of SMS Lists for a shortcode by list status
-func (r SmsRequest) GetListCollection(shortCodeID int) (data PhoneListCollectionResponse, err error) {
+func (r Request) GetListCollection(shortCodeID int) (data PhoneListCollectionResponse, err error) {
 	path := fmt.Sprintf("/v1/ShortCode/%v/PhoneList", shortCodeID)
-	response, err := r.sendRequest("GET", path)
+	response, err := r.SendRequest("GET", path)
 	if err != nil {
 		return
 	}
@@ -353,18 +328,18 @@ func (r SmsRequest) GetListCollection(shortCodeID int) (data PhoneListCollection
 	case 401:
 		fallthrough
 	case 404:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //GetListResource Retrieve a single SMS List by List ID
-func (r SmsRequest) GetListResource(shortCodeID int, phoneListID int) (data PhoneListResponse, err error) {
+func (r Request) GetListResource(shortCodeID int, phoneListID int) (data PhoneListResponse, err error) {
 	path := fmt.Sprintf("/v1/ShortCode/%v/PhoneList/%v", shortCodeID, phoneListID)
-	response, err := r.sendRequest("GET", path)
+	response, err := r.SendRequest("GET", path)
 	if err != nil {
 		return
 	}
@@ -384,18 +359,18 @@ func (r SmsRequest) GetListResource(shortCodeID int, phoneListID int) (data Phon
 	case 401:
 		fallthrough
 	case 404:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //GetPhoneAttribute Returns the specified profile field
-func (r SmsRequest) GetPhoneAttribute(shortCodeID int, segmentationFieldID int) (data PhoneAttributeResponse, err error) {
+func (r Request) GetPhoneAttribute(shortCodeID int, segmentationFieldID int) (data PhoneAttributeResponse, err error) {
 	path := fmt.Sprintf("/v1/ShortCode/%v/SegmentationField/%v", shortCodeID, segmentationFieldID)
-	response, err := r.sendRequest("GET", path)
+	response, err := r.SendRequest("GET", path)
 	if err != nil {
 		return
 	}
@@ -415,18 +390,18 @@ func (r SmsRequest) GetPhoneAttribute(shortCodeID int, segmentationFieldID int) 
 	case 401:
 		fallthrough
 	case 404:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //GetPhoneAttributeCollection Returns the collection of profile fields that exist for the company associated with the specified Short Code
-func (r SmsRequest) GetPhoneAttributeCollection(shortCodeID int) (data PhoneAttributeCollectionResponse, err error) {
+func (r Request) GetPhoneAttributeCollection(shortCodeID int) (data PhoneAttributeCollectionResponse, err error) {
 	path := fmt.Sprintf("/v1/ShortCode/%v/SegmentationField", shortCodeID)
-	response, err := r.sendRequest("GET", path)
+	response, err := r.SendRequest("GET", path)
 	if err != nil {
 		return
 	}
@@ -446,19 +421,19 @@ func (r SmsRequest) GetPhoneAttributeCollection(shortCodeID int) (data PhoneAttr
 	case 401:
 		fallthrough
 	case 404:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //GetShortCodeCollection Retrieve a collection of Short Code objects for a Company
-func (r SmsRequest) GetShortCodeCollection() (data ShortCodeCollectionResponse, err error) {
-	r.newRequest()
+func (r Request) GetShortCodeCollection() (data ShortCodeCollectionResponse, err error) {
+	r.NewRequest()
 	path := "/v1/ShortCode"
-	response, err := r.sendRequest("get", path)
+	response, err := r.SendRequest("get", path)
 	if err != nil {
 		return
 	}
@@ -469,18 +444,18 @@ func (r SmsRequest) GetShortCodeCollection() (data ShortCodeCollectionResponse, 
 	case 400:
 		fallthrough
 	case 401:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //GetShortCodeResource Retrieve a single SMS Short Code by Short Code ID
-func (r SmsRequest) GetShortCodeResource(shortCodeID int) (data ShortCodeResponse, err error) {
+func (r Request) GetShortCodeResource(shortCodeID int) (data ShortCodeResponse, err error) {
 	path := fmt.Sprintf("/v1/ShortCode/%v", shortCodeID)
-	response, err := r.sendRequest("get", path)
+	response, err := r.SendRequest("get", path)
 	if err != nil {
 		return
 	}
@@ -491,21 +466,21 @@ func (r SmsRequest) GetShortCodeResource(shortCodeID int) (data ShortCodeRespons
 	case 400:
 		fallthrough
 	case 401:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //GetTransactionalMessageCollection Retrieve a Collection of Transactional SMS Message for an SMS List
-func (r SmsRequest) GetTransactionalMessageCollection(shortCodeID int, phoneListID int) (data TransactionalMessageCollectionResponse, err error) {
+func (r Request) GetTransactionalMessageCollection(shortCodeID int, phoneListID int) (data TransactionalMessageCollectionResponse, err error) {
 	path := fmt.Sprintf(
 		"/v1/ShortCode/%v/PhoneList/%v/TransactionalMessage",
 		shortCodeID, phoneListID,
 	)
-	response, err := r.sendRequest("get", path)
+	response, err := r.SendRequest("get", path)
 	if err != nil {
 		return
 	}
@@ -516,21 +491,21 @@ func (r SmsRequest) GetTransactionalMessageCollection(shortCodeID int, phoneList
 	case 400:
 		fallthrough
 	case 401:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //GetTransactionalMessageResource Retrieve a single Transactional SMS Message for an SMS List by ID
-func (r SmsRequest) GetTransactionalMessageResource(shortCodeID int, phoneListID int, transactionalMessageID int) (data TransactionalMessageResponse, err error) {
+func (r Request) GetTransactionalMessageResource(shortCodeID int, phoneListID int, transactionalMessageID int) (data TransactionalMessageResponse, err error) {
 	path := fmt.Sprintf(
 		"/v1/ShortCode/%v/PhoneList/%v/TransactionalMessage/%v",
 		shortCodeID, phoneListID, transactionalMessageID,
 	)
-	response, err := r.sendRequest("get", path)
+	response, err := r.SendRequest("get", path)
 	if err != nil {
 		return
 	}
@@ -541,22 +516,22 @@ func (r SmsRequest) GetTransactionalMessageResource(shortCodeID int, phoneListID
 	case 400:
 		fallthrough
 	case 401:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return
 }
 
 //PostTransactionalMessageSend Send a single Transactional SMS Message for an SMS List by ID
-func (r SmsRequest) PostTransactionalMessageSend(shortCodeID int, phoneListID int, transactionalMessageID int) (data ResourceCreatedResponse, err error) {
+func (r Request) PostTransactionalMessageSend(shortCodeID int, phoneListID int, transactionalMessageID int) (data ResourceCreatedResponse, err error) {
 	path := fmt.Sprintf(
 		"/v1/ShortCode/%v/PhoneList/%v/TransactionalMessage/%v/Message",
 		shortCodeID, phoneListID, transactionalMessageID,
 	)
 
-	response, err := r.sendRequest("POST", path)
+	response, err := r.SendRequest("POST", path)
 	if err != nil {
 		return
 	}
@@ -576,9 +551,9 @@ func (r SmsRequest) PostTransactionalMessageSend(shortCodeID int, phoneListID in
 	case 401:
 		fallthrough
 	case 404:
-		err = handleErrorResponse(dec)
+		err = listrak.HandleErrorResponse(dec)
 	default:
-		err = ErrUnhandledStatusCode
+		err = listrak.ErrUnhandledStatusCode
 	}
 
 	return

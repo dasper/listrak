@@ -3,7 +3,6 @@ package listrak
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -17,12 +16,6 @@ const AuthServer = "https://auth.listrak.com/OAuth2/Token"
 var clientID string
 var clientSecret string
 var tokenData AuthenticationResponse
-
-type baseRequest struct {
-	payload io.Reader
-	request *http.Request
-	client  http.Client
-}
 
 //AuthenticationResponse from Listrak
 type AuthenticationResponse struct {
@@ -96,26 +89,5 @@ func getAccessToken() (token string, err error) {
 		}
 	}
 	token = tokenData.AccessToken
-	return
-}
-
-func handleErrorResponse(dec *json.Decoder) (err error) {
-	errResponse := ErrorResponse{}
-	if err = dec.Decode(&errResponse); err != nil {
-		err = fmt.Errorf("improper error response: %v", err)
-	} else {
-		err = errResponse.ToError()
-	}
-	return
-}
-
-func (b baseRequest) setHeaders() (err error) {
-	token, err := getAccessToken()
-	if err != nil {
-		return
-	}
-	b.request.Header.Set("Content-Type", "application/json")
-	b.request.Header.Add("Authorization", "Bearer "+token)
-
 	return
 }

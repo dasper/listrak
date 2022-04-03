@@ -1,4 +1,8 @@
-package listrak
+package sms
+
+import (
+	"github.com/dasper/listrak"
+)
 
 // BroadcastMessage #/definitions/BroadcastMessage
 type BroadcastMessage struct {
@@ -10,9 +14,9 @@ type BroadcastMessage struct {
 
 // ContactListSubscription #/definitions/ContactListSubscription
 type ContactListSubscription struct {
-	SubscriptionState string `json:"subscriptionState"`
-	SubscribeDate     string `json:"subscribeDate"`
-	PhoneListID       int32  `json:"phoneListId"`
+	SubscriptionState string           `json:"subscriptionState"`
+	SubscribeDate     listrak.DateTime `json:"subscribeDate"`
+	PhoneListID       int32            `json:"phoneListId"`
 }
 
 // TransactionalMessage #/definitions/TransactionalMessage
@@ -22,16 +26,16 @@ type TransactionalMessage struct {
 	TransactionalMessageID     int32  `json:"transactionalMessageId"`
 }
 
-// SMSContact #/definitions/SMSContact
-type SMSContact struct {
-	PhoneNumber             string                     `json:"phoneNumber,omitempty"`
-	EmailAddress            string                     `json:"emailAddress,omitempty"`
-	FirstName               string                     `json:"firstName,omitempty"`
-	LastName                string                     `json:"lastName,omitempty"`
-	Birthday                string                     `json:"birthday,omitempty"`
-	PostalCode              string                     `json:"postalCode,omitempty"`
-	SegmentationFieldValues []SMSPhoneContactAttribute `json:"segmentationFieldValues,omitempty"`
-	OptedOut                bool                       `json:"optedOut,omitempty"`
+// Contact #/definitions/SMSContact
+type Contact struct {
+	PhoneNumber             string                  `json:"phoneNumber,omitempty"`
+	EmailAddress            string                  `json:"emailAddress,omitempty"`
+	FirstName               string                  `json:"firstName,omitempty"`
+	LastName                string                  `json:"lastName,omitempty"`
+	Birthday                string                  `json:"birthday,omitempty"`
+	PostalCode              string                  `json:"postalCode,omitempty"`
+	SegmentationFieldValues []PhoneContactAttribute `json:"segmentationFieldValues,omitempty"`
+	OptedOut                bool                    `json:"optedOut,omitempty"`
 }
 
 // ShortCodeMessage #/definitions/ShortCode
@@ -54,36 +58,36 @@ type ShortCodeMessage struct {
 	ShortCodeID                                 int    `json:"shortCodeId"`
 }
 
-// SMSContactSubscriptionDetails #/definitions/SMSContactSubscriptionDetails
-type SMSContactSubscriptionDetails struct {
-	SubscribeDate           string                     `json:"subscribeDate"`
-	UnsubscribeDate         string                     `json:"unsubscribeDate"`
-	PhoneNumber             string                     `json:"phoneNumber"`
-	EmailAddress            string                     `json:"emailAddress"`
-	FirstName               string                     `json:"firstName"`
-	LastName                string                     `json:"lastName"`
-	Birthday                string                     `json:"birthday"`
-	PostalCode              string                     `json:"postalCode"`
-	SegmentationFieldValues []SMSPhoneContactAttribute `json:"segmentationFieldValues"`
-	OptedOut                bool                       `json:"optedOut"`
+// ContactSubscriptionDetails #/definitions/SMSContactSubscriptionDetails
+type ContactSubscriptionDetails struct {
+	SubscribeDate           listrak.DateTime        `json:"subscribeDate"`
+	UnsubscribeDate         listrak.DateTime        `json:"unsubscribeDate"`
+	PhoneNumber             string                  `json:"phoneNumber"`
+	EmailAddress            string                  `json:"emailAddress"`
+	FirstName               string                  `json:"firstName"`
+	LastName                string                  `json:"lastName"`
+	Birthday                string                  `json:"birthday"`
+	PostalCode              string                  `json:"postalCode"`
+	SegmentationFieldValues []PhoneContactAttribute `json:"segmentationFieldValues"`
+	OptedOut                bool                    `json:"optedOut"`
 }
 
-// SMSPhoneContactAttribute #/definitions/SMSPhoneContactAttribute
-type SMSPhoneContactAttribute struct {
+// PhoneContactAttribute #/definitions/SMSPhoneContactAttribute
+type PhoneContactAttribute struct {
 	Value               string `json:"value,omitempty"`
 	SegmentationFieldID int    `json:"segmentationFieldId,omitempty"`
 }
 
 // PhoneList #/definitions/PhoneList
 type PhoneList struct {
-	MessageLimitTimeFrame string `json:"messageLimitTimeFrame"`
-	PhoneListName         string `json:"phoneListName"`
-	CreateDate            string `json:"createDate"`
-	Status                string `json:"status"`
-	SmsListType           string `json:"smsListType"`
-	MessageLimit          int    `json:"messageLimit"`
-	PhoneListID           int    `json:"phoneListId"`
-	RequireDoubleOptIn    bool   `json:"requireDoubleOptIn"`
+	MessageLimitTimeFrame string           `json:"messageLimitTimeFrame"`
+	PhoneListName         string           `json:"phoneListName"`
+	CreateDate            listrak.DateTime `json:"createDate"`
+	Status                string           `json:"status"`
+	SmsListType           string           `json:"smsListType"`
+	MessageLimit          int              `json:"messageLimit"`
+	PhoneListID           int              `json:"phoneListId"`
+	RequireDoubleOptIn    bool             `json:"requireDoubleOptIn"`
 }
 
 // PhoneAttribute #/definitions/PhoneAttribute

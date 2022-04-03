@@ -1,24 +1,8 @@
-package listrak
-
-import (
-	"fmt"
-)
+package sms
 
 type ResourceCreatedResponse struct {
 	ResourceId string `json:"resourceId"`
 	Status     int    `json:"status"`
-}
-
-//ErrorResponse #/definitions/Error
-type ErrorResponse struct {
-	Error   string `json:"error"`
-	Message string `json:"message"`
-	Status  int    `json:"status"`
-}
-
-//ToError formatting
-func (e ErrorResponse) ToError() error {
-	return fmt.Errorf("%v (%v): %v", e.Status, e.Error, e.Message)
 }
 
 // TransactionalMessageResponse #/definitions/TransactionalMessage
@@ -40,10 +24,10 @@ type ShortCodeCollectionResponse struct {
 	Status         int                `json:"status"`
 }
 
-// SMSContactSubscriptionDetailsResponse #/definitions/Resource[SMSContactSubscriptionDetails]
-type SMSContactSubscriptionDetailsResponse struct {
-	Data   SMSContactSubscriptionDetails `json:"data"`
-	Status int                           `json:"status"`
+// ContactSubscriptionDetailsResponse #/definitions/Resource[SMSContactSubscriptionDetails]
+type ContactSubscriptionDetailsResponse struct {
+	Data   ContactSubscriptionDetails `json:"data"`
+	Status int                        `json:"status"`
 }
 
 // ResourceUpdatedResponse #/definitions/ResourceUpdated
@@ -52,8 +36,8 @@ type ResourceUpdatedResponse struct {
 	Status     int    `json:"status"`
 }
 
-//SMSContactCollectionResponse #/definitions/Collection[SMSContact]
-type SMSContactCollectionResponse struct {
+// ContactCollectionResponse #/definitions/Collection[SMSContact]
+type ContactCollectionResponse struct {
 	Data   []ShortCodeMessage `json:"data"`
 	Status int                `json:"status"`
 }
