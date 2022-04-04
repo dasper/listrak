@@ -24,5 +24,14 @@ type ErrorResponse struct {
 
 //ToError formatting
 func (e ErrorResponse) ToError() error {
+	err, found := errorMap[e.Error]
+	if !found {
+		err = fmt.Errorf(e.Message)
+	}
+	return err
+}
+
+//ToError formatting
+func (e ErrorResponse) String() error {
 	return fmt.Errorf("%v (%v): %v", e.Status, e.Error, e.Message)
 }
