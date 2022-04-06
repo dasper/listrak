@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 
 	"github.com/dasper/listrak"
 )
@@ -105,12 +104,12 @@ func (r Request) PostTransactionalMessageSend(listID int, transactionalMessageID
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
@@ -137,12 +136,12 @@ func (r Request) GetTransactionalMessageCollection(listID int) (data Transaction
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
@@ -169,12 +168,12 @@ func (r Request) GetTransactionalMessageResource(listID int, transactionalMessag
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
@@ -201,12 +200,12 @@ func (r Request) GetTransactionalMessageActivityCollection(listID int, transacti
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {

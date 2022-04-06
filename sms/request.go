@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/url"
 	"strconv"
 	"strings"
@@ -41,12 +40,12 @@ func (r Request) PostImmediateBroadcast(shortCodeID int, broadcastMessage Broadc
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
@@ -73,12 +72,12 @@ func (r Request) GetContactCollection(shortCodeID int, phoneListID int) (data Co
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
@@ -110,12 +109,12 @@ func (r Request) PostContactListResource(shortCodeID int, phoneListID int, SMSCo
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
@@ -142,12 +141,12 @@ func (r Request) GetContactResource(shortCodeID int, phoneNumber int) (data Cont
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
@@ -174,12 +173,12 @@ func (r Request) PutContactResource(shortCodeID int) (data ResourceUpdatedRespon
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
@@ -219,12 +218,12 @@ func (r Request) GetContactListCollection(shortCodeID, phoneNumber int, cursor s
 		return
 	}
 
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
@@ -250,12 +249,12 @@ func (r Request) PostContactListSubscription(shortCodeID int, phoneNumber string
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
@@ -281,12 +280,12 @@ func (r Request) DeleteUnsubscribeContactListSubscription(shortCodeID int, phone
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
@@ -312,12 +311,12 @@ func (r Request) GetListCollection(shortCodeID int) (data PhoneListCollectionRes
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
@@ -343,12 +342,12 @@ func (r Request) GetListResource(shortCodeID int, phoneListID int) (data PhoneLi
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
@@ -374,12 +373,12 @@ func (r Request) GetPhoneAttribute(shortCodeID int, segmentationFieldID int) (da
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
@@ -405,12 +404,12 @@ func (r Request) GetPhoneAttributeCollection(shortCodeID int) (data PhoneAttribu
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
@@ -535,12 +534,12 @@ func (r Request) PostTransactionalMessageSend(shortCodeID int, phoneListID int, 
 	if err != nil {
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func() {
+		err = response.Body.Close()
 		if err != nil {
 			return
 		}
-	}(response.Body)
+	}()
 	dec := json.NewDecoder(response.Body)
 
 	switch response.StatusCode {
