@@ -61,7 +61,8 @@ type PhoneAttributeCollectionResponse struct {
 
 // PhoneListResponse #/definitions/PhoneList
 type PhoneListResponse struct {
-	PhoneList
+	Data   PhoneList `json:"data"`
+	Status int       `json:"status"`
 }
 
 // PhoneAttributeResponse #/definitions/Resource[PhoneAttribute]
