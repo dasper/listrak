@@ -76,12 +76,13 @@ func setAuthToken() (err error) {
 		return
 	}
 	auth.expiresAt = time.Now().Add(time.Duration(auth.ExpiresIn) * time.Second)
+	fmt.Println("Token expires at:", auth.expiresAt)
 	tokenData = auth
 	return
 }
 
 func getAccessToken() (token string, err error) {
-	if tokenData.expiresAt.After(time.Now().Add(-5 * time.Minute)) {
+	if tokenData.expiresAt.Before(time.Now().Add(-15 * time.Minute)) {
 		err = setAuthToken()
 		if err != nil {
 			err = fmt.Errorf("failed token refresh: %v", err.Error())
