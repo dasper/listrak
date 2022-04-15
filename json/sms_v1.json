@@ -123,7 +123,7 @@
           "Contact"
         ],
         "summary": "Get Contact Collection",
-        "description": "Returns all contacts that exist on a specific SMS list by optout status.",
+        "description": "Returns all contacts that exist on a specific SMS list by opt-out status.",
         "operationId": "Contact_GetContactCollection",
         "consumes": [],
         "produces": [
@@ -595,7 +595,7 @@
           {
             "name": "phoneNumber",
             "in": "path",
-            "description": "Phone number to idenify contact to retrieve data.",
+            "description": "Phone number to identify contact to retrieve data.",
             "required": true,
             "type": "string"
           },
@@ -1683,7 +1683,7 @@
           {
             "name": "transactionalMessageId",
             "in": "path",
-            "description": "Identifier used to specify the Tranactional SMS Message.",
+            "description": "Identifier used to specify the Transactional SMS Message.",
             "required": true,
             "type": "integer",
             "format": "int32"
@@ -1789,7 +1789,7 @@
           {
             "name": "transactionalMessageId",
             "in": "path",
-            "description": "Identifier used to specify the Tranactional SMS Message.",
+            "description": "Identifier used to specify the Transactional SMS Message.",
             "required": true,
             "type": "integer",
             "format": "int32"
@@ -1935,7 +1935,7 @@
           "type": "integer"
         },
         "error": {
-          "description": "Error code indicating what error has occured.",
+          "description": "Error code indicating what error has occurred.",
           "type": "string"
         },
         "message": {
